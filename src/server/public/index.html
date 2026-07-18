@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AgentDeck — AI control tower</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">◈</span>
+        <span>AgentDeck</span>
+        <span class="tagline">AI control tower</span>
+      </div>
+      <div class="summary" id="summary">
+        <div class="stat"><span class="num" id="s-total">0</span><span class="lbl">sessions</span></div>
+        <div class="stat running"><span class="num" id="s-running">0</span><span class="lbl">running</span></div>
+        <div class="stat waiting" id="stat-waiting"><span class="num" id="s-waiting">0</span><span class="lbl">need input</span></div>
+        <div class="stat"><span class="num" id="s-tokens">0</span><span class="lbl">tokens</span></div>
+        <div class="stat cost"><span class="num" id="s-cost">$0</span><span class="lbl">est. cost</span></div>
+      </div>
+      <div class="conn" id="conn"><span class="dot"></span><span id="conn-text">connecting…</span></div>
+    </header>
+
+    <section class="attention" id="attention">
+      <div class="attention-inner">
+        <div class="attention-head">
+          <span class="pill" id="att-count">0</span>
+          <span>waiting for your input</span>
+        </div>
+        <div class="attention-list" id="attention-list"></div>
+      </div>
+    </section>
+
+    <main id="grid" class="grid">
+      <div class="empty" id="empty">
+        <div class="big">◈</div>
+        <div>No AI sessions detected yet.</div>
+        <div class="hint">
+          Start Claude Code (or any agent) and it appears here live. For exact status,
+          run <code>agentdeck install-hooks</code>. Custom agents can report in via the heartbeat SDK.
+        </div>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <span>AgentDeck <span class="mono">v0.1.0</span></span>
+      <span class="mono" id="clock"></span>
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

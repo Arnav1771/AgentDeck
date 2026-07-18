@@ -1,0 +1,24 @@
+{
+  "port": 4317,
+  "pollIntervalMs": 3000,
+  "collectors": {
+    "claudeCode": true,
+    "processScan": true,
+    "usage": false,
+    "heartbeat": true
+  },
+  "alerts": {
+    "desktop": true,
+    "bell": true,
+    "dashboard": true,
+    "ntfyTopicUrl": "https://ntfy.sh/agentdeck-CHANGE-ME-to-something-random"
+  },
+  "usage": {
+    "anthropicAdminKey": "sk-ant-admin-... (optional; enables real billed-spend row)"
+  },
+  "idleAfterMs": 90000,
+  "reapAfterMs": 1800000,
+  "pricing": {
+    "claude-sonnet": { "input": 3, "output": 15, "cacheRead": 0.3, "cacheWrite": 3.75 }
+  }
+}
