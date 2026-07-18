@@ -81,6 +81,23 @@ body {
 .conn.bad .dot { background: var(--waiting); box-shadow: 0 0 8px var(--waiting); }
 @keyframes breathe { 50% { opacity: .45; } }
 
+/* ---------- Burn chart ---------- */
+.chartbar { padding: 14px 26px 16px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0d1421, #0b101b); }
+.chart-head { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+.chart-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.chart-legend { display: flex; align-items: center; gap: 14px; font-size: 11px; color: var(--faint); }
+.chart-legend .lg { display: flex; align-items: center; gap: 6px; }
+.chart-legend .lg i { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+.chart-legend .lg.cost i { background: var(--accent); }
+.chart-legend .lg.tok i { background: var(--accent-2); }
+.chart-range { color: var(--faint); margin-left: 2px; }
+.chart-now { margin-left: auto; display: flex; gap: 18px; }
+.cn-val { font-weight: 700; font-size: 16px; }
+#cn-cost { color: var(--accent); }
+#cn-tok { color: var(--accent-2); }
+#burnChart { width: 100%; height: 90px; display: block; }
+
 /* ---------- Attention rail ---------- */
 .attention {
   margin: 0; padding: 0; overflow: hidden;

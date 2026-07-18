@@ -11,11 +11,12 @@ import { dirname, join } from "node:path";
 import type { SessionStore } from "../core/store.js";
 import type { AgentDeckConfig } from "../core/config.js";
 import type { SessionEvent } from "../core/types.js";
+import type { HistoryRecorder } from "../core/history.js";
 import { applyHeartbeat, mapClaudeMode, statusForHookEvent } from "../collectors/heartbeat.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function startServer(store: SessionStore, config: AgentDeckConfig) {
+export function startServer(store: SessionStore, config: AgentDeckConfig, history?: HistoryRecorder) {
   const app = express();
   app.use(express.json({ limit: "1mb" }));
 
@@ -25,6 +26,11 @@ export function startServer(store: SessionStore, config: AgentDeckConfig) {
   // --- REST API ---
   app.get("/api/sessions", (_req, res) => res.json(store.all()));
   app.get("/api/summary", (_req, res) => res.json(store.summary()));
+  app.get("/api/history", (req, res) => {
+    const minutes = Math.max(1, Math.min(10080, Number(req.query.minutes) || 120));
+    const points = history ? history.recent(minutes) : [];
+    res.json({ minutes, points });
+  });
 
   // Generic heartbeat (custom agents + SDK).
   app.post("/api/heartbeat", (req, res) => {

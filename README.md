@@ -10,8 +10,9 @@ You live in the terminal and run a lot of AI at once: Claude Code in three panes
 
 **AgentDeck** is one live pane that answers *"what AI is running right now?"* across your
 whole machine — per session: **status**, **mode (auto / manual / plan)**, **tokens &
-estimated cost**, and a big flashing **"needs your input"** signal that also pushes to
-your phone.
+estimated cost**, a live **spend/burn chart**, and a big flashing **"needs your input"**
+signal that also pushes to your phone. It even ships an **MCP server** so Claude Code can
+*ask* the deck what's running.
 
 > Built to run inside WSL. Web dashboard **and** a terminal TUI, sharing one core engine.
 
@@ -114,13 +115,44 @@ default; the file only overrides what you set. Notable keys:
 
 ---
 
+## MCP server — let Claude Code query the deck
+
+AgentDeck ships an MCP server so, inside a Claude Code session, you can ask *"which of
+my agents is waiting for input?"* or *"how much have I spent?"* and it answers from the
+live deck. Tools: `list_agents`, `get_summary`, `get_waiting_input`, `get_history`,
+`report_status`.
+
+```bash
+agentdeck serve                                            # keep the deck running
+claude mcp add agentdeck -- node "$PWD/dist/mcp/server.js" # register with Claude Code
+```
+
+Full setup (incl. `.mcp.json`) in `IMP_DOCS/v0.2.0/MCP.md`.
+
+## Spend & burn chart
+
+The dashboard draws a live cumulative **cost + token** area chart, seeded from history and
+updated as you go. History is snapshotted every 60s to `~/.agentdeck/history.jsonl` and
+survives restarts; query it at `GET /api/history?minutes=N`.
+
+## Phone push in one command
+
+```bash
+agentdeck set-push                 # generates an ntfy topic + writes config + prints steps
+agentdeck set-push https://ntfy.sh/my-own-topic   # or use your own
+```
+Install the free **ntfy** app, subscribe to the printed topic, and every "needs input"
+alert lands on your phone.
+
 ## CLI
 
 ```
 agentdeck serve            start dashboard + API (default command)
 agentdeck tui              terminal dashboard (connects to a running server)
+agentdeck mcp              run the MCP server (stdio) for Claude Code
 agentdeck install-hooks    wire Claude Code hooks → AgentDeck
 agentdeck uninstall-hooks  remove them
+agentdeck set-push [url]   configure phone push (ntfy)
 agentdeck doctor           environment + connectivity check
 ```
 
@@ -128,6 +160,7 @@ agentdeck doctor           environment + connectivity check
 
 - `GET  /api/sessions` → all sessions
 - `GET  /api/summary`  → roll-up (counts, total tokens, total cost)
+- `GET  /api/history?minutes=N` → token/cost time series for the chart
 - `POST /api/heartbeat` → custom-agent report (see SDK)
 - `POST /api/hook` → Claude Code hook intake
 - `WS   /ws` → live event stream (snapshot + upserts/removes/alerts)
@@ -147,8 +180,9 @@ See `IMP_DOCS/` for the versioned design notes and changelog.
 
 ## Roadmap
 
-- Native **MCP server** so Claude Code can *ask* the deck "what's running?" and act on it.
-- Historical token/cost charts (sparklines) and per-day rollups.
-- Pause/resume/kill controls from the dashboard.
+- ~~Native MCP server~~ ✓ shipped in v0.2.0
+- ~~Historical token/cost charts~~ ✓ shipped in v0.2.0
+- Per-session history + per-day rollups.
+- Pause/resume/kill controls from the dashboard (and matching MCP tools).
 
 MIT © 2026 Arnav Bhargava

@@ -1,16 +1,18 @@
 {
   "name": "agentdeck",
-  "version": "0.1.0",
-  "description": "Control tower for AI coding agents — see every AI session running on your machine: status, mode (auto/manual), credits/tokens burned, and which one is waiting on you.",
+  "version": "0.2.0",
+  "description": "Control tower for AI coding agents — see every AI session running on your machine: status, mode (auto/manual), credits/tokens burned, live burn charts, an MCP server, and which one is waiting on you.",
   "type": "module",
   "bin": {
-    "agentdeck": "./dist/index.js"
+    "agentdeck": "./dist/index.js",
+    "agentdeck-mcp": "./dist/mcp/server.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && cp -r src/server/public dist/server/public",
     "dev": "tsx src/index.ts serve",
     "serve": "tsx src/index.ts serve",
     "tui": "tsx src/index.ts tui",
+    "mcp": "tsx src/index.ts mcp",
     "doctor": "tsx src/index.ts doctor",
     "start": "node dist/index.js serve"
   },
@@ -28,10 +30,12 @@
   "author": "Arnav Bhargava",
   "license": "MIT",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
     "blessed": "^0.1.81",
     "commander": "^12.1.0",
     "express": "^4.19.2",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/blessed": "^0.1.25",

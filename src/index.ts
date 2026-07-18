@@ -9,8 +9,9 @@
  *   agentdeck doctor           check environment and connectivity
  */
 import { Command } from "commander";
-import { loadConfig } from "./core/config.js";
+import { loadConfig, writeConfigPatch, randomNtfyTopic } from "./core/config.js";
 import { SessionStore } from "./core/store.js";
+import { HistoryRecorder } from "./core/history.js";
 import { startServer } from "./server/server.js";
 import { Alerter } from "./alerts/alerter.js";
 import { ClaudeCodeCollector } from "./collectors/claudeCode.js";
@@ -48,7 +49,10 @@ program
 
     for (const c of collectors) await c.start?.(store, config);
 
-    startServer(store, config);
+    const history = new HistoryRecorder(store);
+    history.start(60_000);
+
+    startServer(store, config, history);
 
     const tick = async () => {
       for (const c of collectors) {
@@ -92,6 +96,31 @@ program
   .command("uninstall-hooks")
   .description("Remove AgentDeck's Claude Code hooks")
   .action(() => uninstallHooks());
+
+program
+  .command("mcp")
+  .description("Run the AgentDeck MCP server (stdio) so Claude Code can query the deck")
+  .action(async () => {
+    const { runMcp } = await import("./mcp/server.js");
+    await runMcp();
+  });
+
+program
+  .command("set-push")
+  .description("Configure phone push (ntfy). Pass a topic URL, or omit to generate one.")
+  .argument("[topicUrl]", "ntfy topic URL, e.g. https://ntfy.sh/agentdeck-xyz")
+  .action((topicUrl?: string) => {
+    const url = topicUrl || randomNtfyTopic();
+    const path = writeConfigPatch({ alerts: { ntfyTopicUrl: url } });
+    const topic = url.split("/").pop();
+    console.log(`✔ Phone push configured → ${url}`);
+    console.log(`  Written to ${path}`);
+    console.log(`\n  To receive alerts on your phone:`);
+    console.log(`   1. Install the free "ntfy" app (iOS / Android).`);
+    console.log(`   2. Subscribe to topic:  ${topic}`);
+    console.log(`   3. Restart \`agentdeck serve\`. You'll get a push whenever an agent needs input.`);
+    console.log(`\n  Test it now:  curl -d "hello from AgentDeck" ${url}`);
+  });
 
 program
   .command("doctor")

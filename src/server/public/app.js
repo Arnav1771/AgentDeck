@@ -11,6 +11,8 @@
   let sessions = new Map();
   let audioCtx = null;
   let prevWaiting = new Set();
+  let series = []; // {t, cost, tokens}
+  let lastPointT = 0;
 
   function beep() {
     try {
@@ -144,6 +146,90 @@
     $("s-waiting").textContent = sm.waitingInput;
     $("s-tokens").textContent = fmtNum(sm.totalTokens);
     $("s-cost").textContent = "$" + sm.totalCostUsd.toFixed(2);
+    $("cn-cost").textContent = "$" + sm.totalCostUsd.toFixed(2);
+    $("cn-tok").textContent = fmtNum(sm.totalTokens);
+    // append a live point at most every 5s so the chart moves without flooding
+    const now = Date.now();
+    if (now - lastPointT > 5000) {
+      series.push({ t: now, cost: sm.totalCostUsd, tokens: sm.totalTokens });
+      if (series.length > 1000) series = series.slice(-1000);
+      lastPointT = now;
+      drawChart();
+    }
+  }
+
+  async function seedHistory() {
+    try {
+      const r = await fetch("/api/history?minutes=120");
+      const data = await r.json();
+      series = (data.points || []).map((p) => ({ t: p.t, cost: p.costUsd, tokens: p.tokens }));
+      drawChart();
+    } catch (_) {}
+  }
+
+  function drawChart() {
+    const c = $("burnChart");
+    if (!c) return;
+    const dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth || c.parentElement.clientWidth - 52;
+    const h = 90;
+    if (c.width !== w * dpr || c.height !== h * dpr) { c.width = w * dpr; c.height = h * dpr; }
+    const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const pad = { l: 4, r: 4, t: 10, b: 8 };
+    const plotW = w - pad.l - pad.r, plotH = h - pad.t - pad.b;
+
+    // faint grid
+    ctx.strokeStyle = "rgba(255,255,255,0.04)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 3; i++) {
+      const y = pad.t + (plotH * i) / 3;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+    }
+
+    const pts = series.length ? series : [{ t: Date.now(), cost: 0, tokens: 0 }];
+    if (pts.length < 2) {
+      const only = pts[0];
+      pts.unshift({ t: only.t - 60000, cost: 0, tokens: 0 });
+    }
+    const t0 = pts[0].t, t1 = pts[pts.length - 1].t || t0 + 1;
+    const span = Math.max(1, t1 - t0);
+    const maxCost = Math.max(0.0001, ...pts.map((p) => p.cost));
+    const maxTok = Math.max(1, ...pts.map((p) => p.tokens));
+    const X = (t) => pad.l + ((t - t0) / span) * plotW;
+    const Yc = (v) => pad.t + plotH - (v / maxCost) * plotH;
+    const Yt = (v) => pad.t + plotH - (v / maxTok) * plotH;
+
+    // cost area (accent)
+    ctx.beginPath();
+    ctx.moveTo(X(pts[0].t), Yc(pts[0].cost));
+    for (const p of pts) ctx.lineTo(X(p.t), Yc(p.cost));
+    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + plotH);
+    grad.addColorStop(0, "rgba(91,140,255,0.35)");
+    grad.addColorStop(1, "rgba(91,140,255,0.02)");
+    ctx.lineTo(X(pts[pts.length - 1].t), pad.t + plotH);
+    ctx.lineTo(X(pts[0].t), pad.t + plotH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+    // cost stroke
+    ctx.beginPath();
+    pts.forEach((p, i) => (i ? ctx.lineTo(X(p.t), Yc(p.cost)) : ctx.moveTo(X(p.t), Yc(p.cost))));
+    ctx.strokeStyle = "#5b8cff"; ctx.lineWidth = 2; ctx.stroke();
+
+    // tokens line (accent-2, thinner)
+    ctx.beginPath();
+    pts.forEach((p, i) => (i ? ctx.lineTo(X(p.t), Yt(p.tokens)) : ctx.moveTo(X(p.t), Yt(p.tokens))));
+    ctx.strokeStyle = "rgba(139,123,255,0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // emphasized endpoints
+    const last = pts[pts.length - 1];
+    ctx.fillStyle = "#5b8cff";
+    ctx.beginPath(); ctx.arc(X(last.t), Yc(last.cost), 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#8b7bff";
+    ctx.beginPath(); ctx.arc(X(last.t), Yt(last.tokens), 2.6, 0, Math.PI * 2); ctx.fill();
   }
 
   function connect() {
@@ -168,5 +254,7 @@
     render(); // keep "ago" fresh
   }, 1000);
 
+  window.addEventListener("resize", drawChart);
+  seedHistory();
   connect();
 })();

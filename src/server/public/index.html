@@ -23,6 +23,22 @@
       <div class="conn" id="conn"><span class="dot"></span><span id="conn-text">connecting…</span></div>
     </header>
 
+    <section class="chartbar" id="chartbar">
+      <div class="chart-head">
+        <div class="chart-title">Spend &amp; token burn</div>
+        <div class="chart-legend">
+          <span class="lg cost"><i></i>est. cost</span>
+          <span class="lg tok"><i></i>tokens</span>
+          <span class="chart-range" id="chart-range">last 2h</span>
+        </div>
+        <div class="chart-now">
+          <span class="cn-val mono" id="cn-cost">$0.00</span>
+          <span class="cn-val mono" id="cn-tok">0</span>
+        </div>
+      </div>
+      <canvas id="burnChart" height="90"></canvas>
+    </section>
+
     <section class="attention" id="attention">
       <div class="attention-inner">
         <div class="attention-head">

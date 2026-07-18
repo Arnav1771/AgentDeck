@@ -2,7 +2,7 @@
  * Config loading. AgentDeck runs with sane defaults and zero config; a
  * `agentdeck.config.json` in the cwd (or path via AGENTDECK_CONFIG) overrides.
  */
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import type { ModelPricing } from "./cost.js";
 
@@ -74,6 +74,36 @@ export function loadConfig(): AgentDeckConfig {
     }
   }
   return { ...DEFAULT_CONFIG };
+}
+
+/** Path we write user config to (cwd/agentdeck.config.json, or AGENTDECK_CONFIG). */
+export function configPath(): string {
+  return process.env.AGENTDECK_CONFIG || resolve(process.cwd(), "agentdeck.config.json");
+}
+
+/**
+ * Merge a partial patch into the on-disk config (creating it if absent) and
+ * return the path written. Used by CLI helpers like `set-push`.
+ */
+export function writeConfigPatch(patch: Record<string, any>): string {
+  const path = configPath();
+  let current: any = {};
+  if (existsSync(path)) {
+    try {
+      current = JSON.parse(readFileSync(path, "utf8"));
+    } catch {
+      /* start fresh if unreadable */
+    }
+  }
+  const merged = deepMerge(current, patch);
+  writeFileSync(path, JSON.stringify(merged, null, 2) + "\n");
+  return path;
+}
+
+/** Generate a hard-to-guess ntfy topic URL. */
+export function randomNtfyTopic(): string {
+  const rand = Math.random().toString(36).slice(2, 10);
+  return `https://ntfy.sh/agentdeck-${rand}`;
 }
 
 function deepMerge<T>(base: T, override: Partial<T>): T {
