@@ -178,6 +178,24 @@ collectors ──►  SessionStore (normalize + cost + alert transitions)  ─�
 
 See `IMP_DOCS/` for the versioned design notes and changelog.
 
+## Landing page (for selling it)
+
+A polished, self-contained marketing page lives at [`landing/index.html`](landing/index.html) —
+hero with a live dashboard mock, problem/features/how-it-works, an MCP demo, pricing tiers
+(Open Source / Pro / Team), and FAQ. It's a single file with everything inlined (no build,
+no external fonts/CDN), so you can host it anywhere:
+
+```bash
+# GitHub Pages (needs a public repo or GitHub Pro):
+cp landing/index.html docs/index.html   # then Settings → Pages → main /docs
+
+# or any static host — just point it at the file:
+npx serve landing        # local preview at http://localhost:3000
+#   Netlify / Vercel / Cloudflare Pages: drag-drop landing/ or set publish dir = landing
+```
+
+Edit the pricing, email CTAs, and copy to taste before you ship it.
+
 ## Roadmap
 
 - ~~Native MCP server~~ ✓ shipped in v0.2.0
